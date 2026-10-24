@@ -6,8 +6,7 @@ Six shortest-path algorithms on a weighted 3D cube, with an interactive WebGL la
   <img src="assets/cutaway.svg" alt="Isometric cut-away of a 10 by 10 by 10 cost cube with the optimal path drawn through it" width="560">
 </p>
 
-> **Live lab:** https://vivekmlresearch.github.io/deterministic-algorithm/
-> (enable Pages once: *Settings → Pages → Deploy from a branch → `main` / `/docs`*)
+> **Live lab:** (https://vivekmlresearch.github.io/3d-pathfinding-lab/)
 
 GitHub renders README files without running scripts, so the interactive parts live on the Pages site. The links below open it pre-configured, and the figures on this page are generated from real runs of the same code (`npm run assets`).
 
