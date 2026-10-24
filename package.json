@@ -1,0 +1,20 @@
+{
+  "name": "deterministic-algorithm",
+  "version": "1.0.0",
+  "description": "Six shortest-path algorithms on a weighted 3D cube, with an interactive WebGL lab, a correctness suite and a benchmark CLI.",
+  "license": "MIT",
+  "private": true,
+  "type": "commonjs",
+  "engines": { "node": ">=16" },
+  "repository": { "type": "git", "url": "git+https://github.com/vivekmlresearch/deterministic-algorithm.git" },
+  "homepage": "https://vivekmlresearch.github.io/deterministic-algorithm/",
+  "keywords": ["dijkstra", "a-star", "bidirectional-search", "pathfinding", "3d-grid", "benchmark", "webgl", "three.js"],
+  "scripts": {
+    "start": "node scripts/serve.js",
+    "test": "node test/verify.js",
+    "bench": "node bench/run.js --out bench/results-26.json",
+    "bench:6": "node bench/run.js --conn 6 --out bench/results-6.json",
+    "assets": "node scripts/make-assets.js",
+    "build:single": "node scripts/build-single.js"
+  }
+}
