@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" width="640" height="330" role="img" aria-labelledby="t d">
+<title id="t">Share of a 40×40×40 cube expanded by each algorithm</title>
+<desc id="d">Mean nodes expanded as a percentage of all cells, over 20 random start and end pairs, 26 moves.</desc>
+<rect width="640" height="330" rx="10" fill="#0d1117"/>
+<text x="22" y="30" fill="#e6edf3" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600">How much of the 40×40×40 cube each algorithm expands</text>
+<text x="22" y="49" fill="#8b949e" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12">mean over 20 random pairs · 26 moves · 5% walls · lower is better</text>
+<line x1="118" x2="118" y1="66" y2="272" stroke="#30363d" stroke-width="1"/>
+<text x="118" y="290" fill="#8b949e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">0%</text>
+<line x1="224.5" x2="224.5" y1="66" y2="272" stroke="#30363d" stroke-width="1"/>
+<text x="224.5" y="290" fill="#8b949e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">25%</text>
+<line x1="331" x2="331" y1="66" y2="272" stroke="#30363d" stroke-width="1"/>
+<text x="331" y="290" fill="#8b949e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">50%</text>
+<line x1="437.5" x2="437.5" y1="66" y2="272" stroke="#30363d" stroke-width="1"/>
+<text x="437.5" y="290" fill="#8b949e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">75%</text>
+<line x1="544" x2="544" y1="66" y2="272" stroke="#30363d" stroke-width="1"/>
+<text x="544" y="290" fill="#8b949e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">100%</text>
+<text x="106" y="88" fill="#e6edf3" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">Dijkstra</text>
+<rect x="118" y="74" width="227.7" height="20" rx="3" fill="#56b4e9"/>
+<text x="353.7479203125" y="88.5" fill="#e6edf3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">53.5%</text>
+<text x="106" y="122" fill="#e6edf3" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">A*</text>
+<rect x="118" y="108" width="85.2" height="20" rx="3" fill="#e69f00"/>
+<text x="211.2" y="122.5" fill="#e6edf3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">20.0%</text>
+<text x="106" y="156" fill="#e6edf3" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">Bi-Dijkstra</text>
+<rect x="118" y="142" width="77.7" height="20" rx="3" fill="#009e73"/>
+<text x="203.73135468750002" y="156.5" fill="#e6edf3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">18.2%</text>
+<text x="106" y="190" fill="#e6edf3" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">Bi-A*</text>
+<rect x="118" y="176" width="29.4" height="20" rx="3" fill="#cc79a7"/>
+<text x="155.43526875" y="190.5" fill="#e6edf3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">6.9%</text>
+<text x="106" y="224" fill="#e6edf3" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">SPFA</text>
+<rect x="118" y="210" width="416.9" height="20" rx="3" fill="#d55e00"/>
+<text x="542.8832671875" y="224.5" fill="#e6edf3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">97.9%</text>
+<text x="106" y="258" fill="#e6edf3" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">Greedy</text>
+<rect x="118" y="244" width="2.0" height="20" rx="3" fill="#f0e442" fill-opacity="0.55"/>
+<text x="128" y="258.5" fill="#e6edf3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">0.04% ·not optimal</text>
+</svg>

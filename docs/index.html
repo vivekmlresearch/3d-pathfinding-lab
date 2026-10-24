@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cube Pathfinding Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>Cube Pathfinding Lab</h1>
+      <p>Six shortest-path algorithms on a 3D grid of weighted cells. Click two cells to set the start and end, run the algorithms head to head, and replay each search as it spreads through the cube.</p>
+    </div>
+    <nav>
+      <a href="https://github.com/vivekmlresearch/deterministic-algorithm">Source on GitHub</a>
+      <a href="#tech">Algorithm notes</a>
+      <a href="demos/cost-cube.html">Cost cube demo (100³)</a>
+    </nav>
+  </header>
+
+  <main class="app">
+    <section class="stage" id="stage" aria-label="3D view of the cost cube">
+      <canvas id="gl" aria-label="Interactive 3D grid. Drag to orbit, scroll to zoom, click a cell to set the start or end."></canvas>
+      <div class="hud">
+        <div class="readout"><span class="chip" id="chip"></span><span id="readout">Hover a cell for its cost · drag to orbit · scroll to zoom · click to set start or end</span></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="busy" id="busy" hidden></div>
+      <div class="stagebar">
+        <button type="button" id="play" aria-label="Play or pause the replay">Play</button>
+        <input type="range" id="scrub" min="0" max="1" step="1" value="0" aria-label="Replay position">
+        <span class="lbl" id="stepLabel">no search yet</span>
+        <select id="speed" aria-label="Replay speed">
+          <option value="20">Slow</option>
+          <option value="8" selected>Normal</option>
+          <option value="3">Fast</option>
+        </select>
+        <button type="button" id="camReset">Reset camera</button>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel">
+
+      <details class="sec" open>
+        <summary>1 · Cube and weights</summary>
+        <div class="col">
+          <div class="row"><label for="n">Size N</label><input type="range" id="n" min="3" max="100" step="1" value="24"><output id="nO">24</output></div>
+          <div class="row"><label for="wmin">Min cost</label><input type="range" id="wmin" min="0" max="10" step="0.1" value="1"><output id="wminO">1.0</output></div>
+          <div class="row"><label for="wmax">Max cost</label><input type="range" id="wmax" min="0" max="10" step="0.1" value="10"><output id="wmaxO">10.0</output></div>
+          <div class="row"><label for="obst">Walls</label><input type="range" id="obst" min="0" max="40" step="1" value="0"><output id="obstO">0%</output></div>
+          <div class="row sel"><label for="conn">Moves</label>
+            <select id="conn"><option value="6">6 neighbours (faces)</option><option value="26">26 neighbours (faces, edges, corners)</option></select></div>
+          <div class="row"><label for="eps">Heuristic ε</label><input type="range" id="eps" min="0" max="3" step="0.05" value="1"><output id="epsO">1.00</output></div>
+          <div class="row sel"><label for="seed">Seed</label><input type="number" id="seed" min="0" max="4294967295" step="1" value="20261024"></div>
+          <div class="btns">
+            <button type="button" id="reshuffle">Reshuffle weights</button>
+            <button type="button" id="reset">Reset everything</button>
+          </div>
+          <p class="note" id="gridInfo"></p>
+          <p class="note">Entering a cell costs its weight. A* and Bi-A* use ε × (smallest weight in the grid) × (hops to the target), which is admissible for ε ≤ 1. With min cost 0 the heuristic is 0, so A* falls back to Dijkstra.</p>
+        </div>
+      </details>
+
+      <details class="sec" open>
+        <summary>2 · Start and end</summary>
+        <div class="col">
+          <div class="seg-group" role="radiogroup" aria-label="What a click on the cube sets">
+            <label class="seg"><input type="radio" name="pick" value="start" checked><span>Click sets start</span></label>
+            <label class="seg"><input type="radio" name="pick" value="end"><span>Click sets end</span></label>
+          </div>
+          <div class="coords"><label style="color:#22a35a">Start</label>
+            <input type="number" id="sx" aria-label="Start x" min="0" value="0"><input type="number" id="sy" aria-label="Start y" min="0" value="0"><input type="number" id="sz" aria-label="Start z" min="0" value="0"></div>
+          <div class="coords"><label style="color:#d9483b">End</label>
+            <input type="number" id="ex" aria-label="End x" min="0" value="23"><input type="number" id="ey" aria-label="End y" min="0" value="23"><input type="number" id="ez" aria-label="End z" min="0" value="23"></div>
+          <div class="btns three">
+            <button type="button" id="corners">Opposite corners</button>
+            <button type="button" id="randomPair">Random pair</button>
+            <button type="button" id="swap">Swap</button>
+          </div>
+          <p class="note">To pick an interior cell, slice the cube open in section 4 and click the cut face.</p>
+        </div>
+      </details>
+
+      <details class="sec" open>
+        <summary>3 · Algorithms</summary>
+        <div class="col">
+          <div class="hdr"><span>Run</span><span>View</span><span>Algorithm</span><span>Result</span></div>
+          <div id="algoList"></div>
+          <div class="row sel"><label for="reps">Timed reps</label>
+            <select id="reps"><option>1</option><option>3</option><option selected>5</option><option>9</option><option>15</option></select></div>
+          <div class="row sel"><label for="limit">Time limit</label>
+            <select id="limit"><option value="5000">5 s per run</option><option value="20000" selected>20 s per run</option><option value="60000">60 s per run</option></select></div>
+          <div class="toggles"><label><input type="checkbox" id="autorun" checked> Re-run when start or end changes</label></div>
+          <div class="btns">
+            <button type="button" class="primary" id="runSel">Run selected</button>
+            <button type="button" id="runAll">Run all six</button>
+          </div>
+          <button type="button" id="stop" disabled>Stop and restart worker</button>
+          <p class="note" id="status" role="status">Ready.</p>
+        </div>
+      </details>
+
+      <details class="sec" open>
+        <summary>4 · Look inside the cube</summary>
+        <div class="col">
+          <div class="row sel"><label for="showMode">Show</label>
+            <select id="showMode">
+              <option value="shell">Outer shell (fast)</option>
+              <option value="all">Every cell (slow above N=60)</option>
+              <option value="explored" selected>Only cells the search expanded</option>
+              <option value="path">Only the path</option>
+            </select></div>
+          <div class="row sel"><label for="colorMode">Color by</label>
+            <select id="colorMode"><option value="search">Search state</option><option value="cost">Cell cost</option></select></div>
+          <div class="row"><label for="cellSize">Cell size</label><input type="range" id="cellSize" min="0.1" max="1" step="0.05" value="0.9"><output id="cellSizeO">0.90</output></div>
+          <div class="row axis"><label style="color:#d6393f">X</label><input type="range" id="x0" min="0" max="23" value="0" aria-label="X from"><input type="range" id="x1" min="0" max="23" value="23" aria-label="X to"><output id="xO">0–23</output></div>
+          <div class="row axis"><label style="color:#1f8f5c">Y</label><input type="range" id="y0" min="0" max="23" value="0" aria-label="Y from"><input type="range" id="y1" min="0" max="23" value="23" aria-label="Y to"><output id="yO">0–23</output></div>
+          <div class="row axis"><label style="color:#3559d6">Z</label><input type="range" id="z0" min="0" max="23" value="0" aria-label="Z from"><input type="range" id="z1" min="0" max="23" value="23" aria-label="Z to"><output id="zO">0–23</output></div>
+          <div class="row axis"><label>¢</label><input type="range" id="f0" min="0" max="10" step="0.1" value="0" aria-label="Cost filter from"><input type="range" id="f1" min="0" max="10" step="0.1" value="10" aria-label="Cost filter to"><output id="fO">0–10</output></div>
+          <div class="btns three">
+            <button type="button" data-view="open">Cut open</button>
+            <button type="button" data-view="slab">Middle slab</button>
+            <button type="button" data-view="whole">Whole cube</button>
+          </div>
+          <div class="toggles">
+            <label><input type="checkbox" id="showObst"> Show walls</label>
+            <label><input type="checkbox" id="showBox" checked> Box and axes</label>
+            <label><input type="checkbox" id="spin"> Auto-rotate</label>
+          </div>
+          <div class="pal" id="pal"></div>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary>5 · Batch benchmark</summary>
+        <div class="col">
+          <p class="note">Runs the selected algorithms on many random start and end pairs of the current cube (one timed run each, no replay data) and reports mean, median, p95 and spread.</p>
+          <div class="row sel"><label for="pairs">Pairs</label>
+            <select id="pairs"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></div>
+          <button type="button" id="runBatch">Run batch benchmark</button>
+          <progress id="batchProg" value="0" max="1" hidden></progress>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary>6 · Share and export</summary>
+        <div class="col">
+          <div class="btns three">
+            <button type="button" id="copyLink">Copy link</button>
+            <button type="button" id="copyJson">Copy JSON</button>
+            <button type="button" id="copyCsv">Copy CSV</button>
+          </div>
+          <p class="note" id="copyNote">The link restores size, weights, seed, endpoints and algorithm. It works on the GitHub Pages site.</p>
+        </div>
+      </details>
+    </aside>
+  </main>
+
+  <section class="block" id="results">
+    <h2>Benchmark results</h2>
+    <div class="cards" id="cards"></div>
+    <div class="tablewrap"><table class="res" id="resTable"><tbody><tr><td class="empty">Run the algorithms to fill this table.</td></tr></tbody></table></div>
+    <p class="note" id="resNote"></p>
+    <div class="charts" id="charts"></div>
+  </section>
+
+  <section class="block" id="batch" hidden>
+    <h2>Batch benchmark</h2>
+    <p class="note" id="batchNote"></p>
+    <div class="tablewrap"><table class="res" id="batchTable"></table></div>
+  </section>
+
+  <section class="block" id="tech">
+    <h2>Algorithm notes</h2>
+    <div class="tablewrap"><table class="res" id="techTable"></table></div>
+    <div class="two prose">
+      <div>
+        <h3>Cost model</h3>
+        <p>The grid is node-weighted: a step from <code>u</code> to <code>v</code> costs <code>w[v]</code>, and the start cell's own weight is never paid. Walls have infinite weight. Weights are drawn from a seeded mulberry32 stream, so the same seed always rebuilds the same cube.</p>
+        <h3>Heuristics</h3>
+        <p>With 6 moves the hop distance is Manhattan distance, with 26 moves it is Chebyshev distance. The heuristic multiplies it by ε and by the smallest cell weight actually present. That is admissible and consistent for ε ≤ 1. Above 1 the A* variants can return a costlier path in exchange for fewer expansions.</p>
+        <h3>Bidirectional search</h3>
+        <p>The backward search walks reversed edges (cost of reaching <code>u</code> from <code>v</code> is <code>w[v]</code>). It stops when the two open-list minima add up to at least the best meeting cost, which keeps the result exact. Bi-A* uses the consistent average potential <code>(hT − hS) / 2</code> so both directions share one reduced-cost graph.</p>
+      </div>
+      <div>
+        <h3>What the counters mean</h3>
+        <p><b>Expanded</b>: nodes taken off the open list and scanned, re-expansions included. <b>Distinct</b>: different nodes expanded. <b>Generated</b>: heap insertions. <b>Edges scanned</b>: neighbour checks that reached an open cell. <b>Improving relaxations</b>: checks that lowered a label. <b>Reopened</b>: closed nodes put back (inconsistent heuristics only). <b>Peak open</b>: largest open list, summed over both directions for bidirectional runs. <b>Working set</b>: bytes in the typed arrays each run allocates.</p>
+        <h3>Timing</h3>
+        <p>Times come from <code>performance.now()</code> inside a Web Worker. Each algorithm gets one recorded warm-up run for the replay, then the chosen number of timed runs without recording. Allocation and initialisation of the working arrays are included. Browser timers are coarse and noisy on small cubes, so compare medians and trust expansion counts more than milliseconds.</p>
+        <h3>Greedy best-first</h3>
+        <p>Orders the open list by hop distance to the target only. It expands very few nodes but ignores cell cost, so the Δ column shows how far from optimal it ends up.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="js/algorithms.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
